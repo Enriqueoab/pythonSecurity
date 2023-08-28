@@ -4,10 +4,6 @@ import scapy.all as scapy
 import argparse
 
 def scan_ip(ip):
-    # scapy.arping(ip) # Below we are going to implement step by stem what that function does
-    # print(arp_request.show()) # To see the fields of the object
-    # print(arp_request.summary()) #  print a concise summary of the packet's contents print a concise summary of the packet's contents
-    # scapy.ls(scapy.ARP()) # To display the names of the fields of a class
 
     # Creating arp request directed to broadcast MAC asking for IP
     arp_request = scapy.ARP(pdst=ip)
@@ -20,7 +16,6 @@ def scan_ip(ip):
     # Parsing the response, extracting the data
     client_list = []
     for element in answered_list:
-        # print(element[1].show()); # Second Package values.
         client_dict = {"ip": element[1].psrc, "mac": element[1].hwsrc}
         client_list.append(client_dict)
         # print(element[1].psrc + "\t\t" +element[1].hwsrc); # psrc -> IP of the client that sent the package to us.  hwsrc (hardware source) -> MAC address of the client that send the package to us.
@@ -34,7 +29,7 @@ def parser_handler():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--target", dest="ip", help="Target IP and the range after '/'")
     opts = parser.parse_args()
-    return opts #scan_ip(opts)
+    return opts
 
 # scan_result = scan_ip("192.168.5.2/24") # /24 Allowed to go through all the range from 0 to 254
 
