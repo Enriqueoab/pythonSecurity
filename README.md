@@ -21,5 +21,5 @@ Common methods use to check object and variables, we are usig scapy as example:
 ```python
     scapy.ls(scapy.ARP())
 ```
-![ARP() method response example]()
-![alt text]()
+![ARP() method response example](https://github.com/Enriqueoab/pythonSecurity/blob/main/img/ls%20method%20example.png)
+![alt text](https://github.com/Enriqueoab/pythonSecurity/blob/main/img/ls%20method%20example.png)
