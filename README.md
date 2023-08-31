@@ -8,14 +8,14 @@ Common methods use to check object and variables, we are usig scapy as example:
 ```python
     print(arp_request.show())
 ```
-Exaple response:
+Expected response:
 
 ![show() method response example](img/show%20method%20example.png)
 - Print a concise summary of the packet's contents print a concise summary of the packet's contents:
 ```python
     print(arp_request.summary())
 ```
-Exaple response:
+Expected response:
 
 ![summary() method response example](img/summary%20method%20example.png)
 
@@ -23,9 +23,17 @@ Exaple response:
 ```python
     scapy.ls(scapy.ARP())
 ```
-Exaple response:
+Expected response:
 
 ![ARP() method response example](img/ls%20method%20example.png)
+
+- To display the arp table:
+```sh
+    arp -a
+```
+Expected response:
+
+![arp table](img/arp%20table.png)
 
 ### Command to run the network_scanner script:
 
@@ -34,11 +42,48 @@ Exaple response:
 python  network_scanner.py --target {OUR_IP}/24
 ```
 
+- This command is used to show the routing information for network traffic
+```sh
+    route -n
+```
+Expected response:
+
+![route command response](img/router%20command%20and%20IP.png)
+
+Command breakdown:
+
+route: This is the command itself. It's used to manage the IP routing table on the system.
+
+-n: This is an option or flag passed to the route command. The -n flag specifies that the output should be displayed
+in numerical format, which means that hostnames (domain names) will not be resolved to IP addresses.
+Instead, IP addresses will be displayed directly, which can make the output faster to display and easier to read when
+you're only interested in the IP addresses and not the hostnames.
+
+IP routing table:
+
+- Destination: The destination network or host IP address.
+- Gateway: The IP address of the next-hop router or gateway that should be used to reach the destination.
+- Genmask: The subnet mask that defines the range of IP addresses in the destination network.
+- Flags: Various flags that provide information about the route, such as whether it's a default route or a host-specific route.
+- Metric: A metric value used to determine the "cost" of using this route. Lower metrics indicate a more preferred route.
+- Ref: The number of references to this route.
+- Use: A counter indicating how many times this route has been used.
+- Iface: The network interface through which the traffic should be directed.
+
+Allowing in the kaly machine to flow packets through.packet. Enabling IP  to work as a router:
+```sh
+    echo 1 > /proc/sys/net/ipv4/ip_forward
+```
+
+Expected response:
+
+**We should be able, in the target computer, to have access to the internet.**
+
 ## ARP spoofing hacking
 
 ### Concepts related to the project.
 
- - ARP (Address Resolution Protocol): Is in charge of help in finding the MAC address of a device within a local network.
+ - [#arp] ARP (Address Resolution Protocol): Is in charge of help in finding the MAC address of a device within a local network.
 
  - MAC: Unique hardware addresses assigned to network interface cards. It is used for actual data transmission at the hardware level
 
@@ -51,9 +96,7 @@ python  network_scanner.py --target {OUR_IP}/24
  - ARP table: It is also known as an ARP cache, is a table maintained by network devices, such as computers and routers, to store a mapping between IP addresses
    and corresponding MAC addresses within a local network.
 
- ### How ARP works?
-
- ## How [ARP](#arp) Works
+ ## How [ARP](#arp) Works?
 
 1. **Device A Wants to Communicate with Device B:**
    - Device A needs to send data to Device B but only knows its IP address, not the MAC address.
