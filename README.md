@@ -145,7 +145,7 @@ Let's imagine a scenario with three devices: Device A (attacker), Device B (vict
 
 *** ADD A SPOOFING NETWORK IMAGE HERE ***
 
-# [Arp spoof](arp_spoof.py) Spoof script:
+# [Arp spoof script](arp_spoof.py):
 
 ##Objective:
 - Redirect the flow of other packets, of other devices, through our computer.
