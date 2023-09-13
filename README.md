@@ -2,7 +2,14 @@
 
 ## Python & Ethical Hacking From Scratch
 
-Common methods use to check object and variables, we are usig scapy as example:
+### Useful command used along the course
+
+*****ADD COMMENT ABOUT WHAT IT DOES******
+
+```sh ifconfig
+```
+
+### Common methods use to check object and variables, we are usig scapy as example:
 
 - Display the fields that belong to the object:
 ```python
@@ -221,4 +228,31 @@ except KeyboardInterrupt: # KeyboardInterrupt is the error thrown when click Ctr
 For python 3 print statement we would set it as below and we don't need flush()
 ```python
     print("\r[+] Packets sent: " +str(packets_sent_count), end="")
- ```
+```
+
+ **Packet snifer**
+
+ - This tool allowed us to capture data flowing through an interface, data that we got with our ARP spofing tool, filter the data
+  and display interesting information (Login info such as username and passwords, visited websites, images, urls,...)
+
+  **Intercepting and modifiying packets**
+
+  And the first thing that I want to do is redirect any packets that we receive on this computer to this
+queue, to the queue that we said will trap all the requests, all the responses.
+And to do that, we're going to use a program called IP Tables.
+This is a program that is installed on UNIX computers that allow us to modify routes on the computer.
+Now, IP tables can be used to do so many things and one of them is modifying routing rules.
+
+```sh
+iptables -I FORDWARD -J NFQUEUE --queue-num 125
+```
+
+So right now what we did is we created the queue and you can think of what's going to happen now if
+we are the man in the middle and your requests that we're going to get or responses will be trapped
+in a queue like this one.
+
+Now we have to install a module as usual:
+
+```sh
+pip instal netfilterqueue
+```
