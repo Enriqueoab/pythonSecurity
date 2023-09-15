@@ -235,16 +235,35 @@ For python 3 print statement we would set it as below and we don't need flush()
  - This tool allowed us to capture data flowing through an interface, data that we got with our ARP spofing tool, filter the data
   and display interesting information (Login info such as username and passwords, visited websites, images, urls,...)
 
-  **Intercepting and modifiying packets**
+  **Intercepting and modifying packets**
 
-  And the first thing that I want to do is redirect any packets that we receive on this computer to this
+1. Trap packets in a queue and access this queue and control it from our script.
+
+And the first thing that I want to do is redirect any packets that we receive on this computer to this
 queue, to the queue that we said will trap all the requests, all the responses.
 And to do that, we're going to use a program called IP Tables.
 This is a program that is installed on UNIX computers that allow us to modify routes on the computer.
-Now, IP tables can be used to do so many things and one of them is modifying routing rules.
+Now, IP tables can be used to do so many things and one of them is modifying routing rules, redirecting chaings packets
+to a queue.
 
 ```sh
-iptables -I FORDWARD -J NFQUEUE --queue-num 125
+    iptables -I FORDWARD -J NFQUEUE --queue-num 125
+```
+
+1.b Create local testing environment.
+
+They only go into the "FORDWARD" chain if they're coming from a different computer so in order to test our script locally we have to first create a queue for
+the the "OUTPUT" chain, this is the chain where packets leaving my computer go through, that's the one I want to trap its packets. So the only thing that's
+going to differ when testing on a local machine or against a remote machine with ARP spoofing is the IP tables rules.
+
+```sh
+    iptables -I OUTPUT -J NFQUEUE --queue-num 369
+```
+
+Second we have to create a queue for the the "INPUT" chain, this is the chain packets coming to my computer.
+
+```sh
+    iptables -I INPUT -J NFQUEUE --queue-num 357
 ```
 
 So right now what we did is we created the queue and you can think of what's going to happen now if
@@ -254,5 +273,34 @@ in a queue like this one.
 Now we have to install a module as usual:
 
 ```sh
-pip instal netfilterqueue
+    pip instal netfilterqueue
 ```
+
+When we finish with the attack we have to make sure we delete the IP table we create at the beginning
+
+```sh
+    iptables --flush
+```
+
+2. Create a DNS spoof.
+
+What a DNS is?
+
+- So basically DNS is use as translator from domain names, such as Booking.com or Facebook.com, to the IP addresses
+of the servers hosting these websites.
+
+How a DNS spoof works?
+
+- We know that when a hacker manages to become the man in the middle, regardless of how they achieve that,
+all the requests sent from the user will have to flow through the hacker's computer. The hacker will then forward
+that to its destination. Same goes for the responses. They'll flow through the hacker and the hacker will forward them to the user.
+Now, as packets are flowing through the hacker's computer, the hacker can control the direction and the content of these packets.
+Now, let's say the user wants to go to CNN.com. The hacker is going to receive this request. And at this stage, the hacker has
+a number of ways to serve the IP of the hacker's web server, which is 0 to 16.
+
+And instead of the IP of Booking.com, this is very dangerous because we'll be able to hijack and spoof any DNS request made
+by the user and serve the user. Fake websites, fake login pages, fake updates, and so on.
+
+
+3. Modify packets before forwarding them to their destination.
+
