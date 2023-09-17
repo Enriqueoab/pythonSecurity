@@ -92,7 +92,7 @@ Expected response:
 
 ### Concepts related to the project.
 
- - [ARP (Address Resolution Protocol)](#arp): Is in charge of help in finding the MAC address of a device within a local network.
+ - [ARP (Address Resolution Protocol)](#arp-def): Is in charge of help in finding the MAC address of a device within a local network.
 
  - MAC: Unique hardware addresses assigned to network interface cards. It is used for actual data transmission at the hardware level
 
@@ -105,7 +105,7 @@ Expected response:
  - ARP table: It is also known as an ARP cache, is a table maintained by network devices, such as computers and routers, to store a mapping between IP addresses
    and corresponding MAC addresses within a local network.
 
- ## How [ARP](#arp) Works?
+ ##How [ARP](#arp-def) Works?
 
 1. **Device A Wants to Communicate with Device B:**
    - Device A needs to send data to Device B but only knows its IP address, not the MAC address.
@@ -129,7 +129,7 @@ Expected response:
 *** ADD A TYPICAL NETWORK IMAGE HERE ***
 
 
-## How [ARP](^arp) spoofing Works:
+## How [ARP](#arp_def) spoofing Works:
 
 Let's imagine a scenario with three devices: Device A (attacker), Device B (victim), and Device R (router).
 
@@ -240,7 +240,7 @@ For python 3 print statement we would set it as below and we don't need flush()
 
 1. Trap packets in a queue and access this queue and control it from our script.
 
-And the first thing that I want to do is redirect any packets that we receive on this computer to this
+And the first thing that we want to do is redirect any packets that we receive on this computer to this
 queue, to the queue that we said will trap all the requests, all the responses.
 And to do that, we're going to use a program called IP Tables.
 This is a program that is installed on UNIX computers that allow us to modify routes on the computer.
@@ -432,4 +432,47 @@ Some response fields introduction:
 ```
 **Steps to run the DNS spoof**
 
-1.
+1. Check original IP address:
+
+```sh
+    ping -c www.bing.com
+```
+
+Result expected:
+
+![ping expected response](img/ping_expected_response.png)
+
+2. Redirect any packets:
+
+```sh
+    iptables -I OUTPUT -j NFQUEUE --queue-num 357
+    iptables -I INPUT -j NFQUEUE --queue-num 357
+```
+
+or in case wewant do a real attack:
+
+```sh
+    iptables -I FORDWARD -j NFQUEUE --queue-num 137
+```
+
+3. Start Apache server:
+
+```sh
+    service apache2 start
+```
+
+4. Run our script, if we are in `root@kali:~/PycharmProjects/pythonProject#` the folder where the script is:
+
+```sh
+    python dns_spoof.py
+```
+
+4.a Check original IP has change to the one in ur script:
+
+```sh
+    ping -c www.bing.com
+```
+
+Result expected:
+
+![success script result](img/ping_IP_change_expected_response.png)
