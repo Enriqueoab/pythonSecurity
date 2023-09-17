@@ -92,7 +92,7 @@ Expected response:
 
 ### Concepts related to the project.
 
- - ARP (Address Resolution Protocol)(#arp): Is in charge of help in finding the MAC address of a device within a local network.
+ - [ARP (Address Resolution Protocol)](#arp): Is in charge of help in finding the MAC address of a device within a local network.
 
  - MAC: Unique hardware addresses assigned to network interface cards. It is used for actual data transmission at the hardware level
 
