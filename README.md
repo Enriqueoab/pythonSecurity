@@ -92,7 +92,7 @@ Expected response:
 
 ### Concepts related to the project.
 
- - [^arp] ARP (Address Resolution Protocol): Is in charge of help in finding the MAC address of a device within a local network.
+ - ####ARP (Address Resolution Protocol): Is in charge of help in finding the MAC address of a device within a local network.
 
  - MAC: Unique hardware addresses assigned to network interface cards. It is used for actual data transmission at the hardware level
 
@@ -105,7 +105,7 @@ Expected response:
  - ARP table: It is also known as an ARP cache, is a table maintained by network devices, such as computers and routers, to store a mapping between IP addresses
    and corresponding MAC addresses within a local network.
 
- ## How [ARP][^arp] Works?
+ ## How [ARP](####arp) Works?
 
 1. **Device A Wants to Communicate with Device B:**
    - Device A needs to send data to Device B but only knows its IP address, not the MAC address.
