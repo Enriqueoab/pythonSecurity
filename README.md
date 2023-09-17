@@ -105,7 +105,7 @@ Expected response:
  - ARP table: It is also known as an ARP cache, is a table maintained by network devices, such as computers and routers, to store a mapping between IP addresses
    and corresponding MAC addresses within a local network.
 
- ## How [ARP](^arp) Works?
+ ## How [ARP][^arp] Works?
 
 1. **Device A Wants to Communicate with Device B:**
    - Device A needs to send data to Device B but only knows its IP address, not the MAC address.
