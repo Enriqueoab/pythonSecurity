@@ -432,6 +432,8 @@ Some response fields introduction:
 ```
 **Steps to run the DNS spoof**
 
+
+
 1. Check original IP address:
 
 ```sh
@@ -476,3 +478,9 @@ or in case wewant do a real attack:
 Result expected:
 
 ![success script result](img/ping_IP_change_expected_response.png)
+
+# Modifying data in the HTTP layer
+
+Edit request/responses
+Replace download requests
+Inject code (Html/JavaScript)
